@@ -1,25 +1,38 @@
-﻿using OtusCSExpert.Common.Types;
+﻿using System.Text;
+using OtusCSExpert.Common.Types;
 
 namespace OtusCSExpert.Common.Parsers;
 
 public static class CommandParser
 {
-    /// <summary> должен разбирать входящую последовательность байт, представляющую собой строку вида "COMMAND KEY VALUE" </summary>
-    /// <param name="command">"COMMAND KEY VALUE" (ex. "SET user:1 data")</param>
-    public static ParsedCommand Parse(string? rawCommand)
+    /// <summary> Перегрузка для явной последовательности байт </summary>
+    public static ParsedCommand Parse(ReadOnlySpan<byte> byteSequence)
     {
-        if (string.IsNullOrWhiteSpace(rawCommand))
+        // Такой подход не компилится, из-за stackalloc ... 
+        //int maxCharCount = Encoding.UTF8.GetCharCount(byteSequence);
+        //Span<char> charBuffer = stackalloc char[maxCharCount];
+        //int actualChars = Encoding.UTF8.GetChars(byteSequence, charBuffer);
+        //ReadOnlySpan<char> rawCommand = charBuffer.Slice(0, actualChars);
+
+        //return Parse(rawCommand);
+
+        if (byteSequence.IsEmpty)
             return ParsedCommand.Empty();
+ 
+        string rawString = Encoding.UTF8.GetString(byteSequence); // Аллокация, за то работает
+        return Parse(rawString.AsSpan().TrimStart());
+    }
 
-        ReadOnlySpan<char> span = rawCommand.AsSpan().TrimStart();
-
+    /// <summary> Перегрузка для последовательности символов </summary>
+    public static ParsedCommand Parse(ReadOnlySpan<char> rawCommand)
+    {
         // Первый токен — команда, всегда должна быть. Если её нет, то это некорректная строка.
-        int idx = span.IndexOf(' ');
+        int idx = rawCommand.IndexOf(' ');
         if (idx < 0)
             return ParsedCommand.Empty(); // "SET" — ключ отсутствует
 
-        ReadOnlySpan<char> command = span.Slice(0, idx);
-        ReadOnlySpan<char> rest = span.Slice(idx + 1); // шагаем через первый пробел
+        ReadOnlySpan<char> command = rawCommand.Slice(0, idx);
+        ReadOnlySpan<char> rest = rawCommand.Slice(idx + 1); // шагаем через первый пробел
 
         // Считаем суммарный gap между command и следующим токеном.
         // Нужно чтобы отличить "GET key" (gap=1) от "SET  data" (gap≥2, ключ пропущен).
@@ -43,5 +56,15 @@ public static class CommandParser
         ReadOnlySpan<char> value = rest.Slice(idx2 + 1).Trim(); // убираем хвостовые пробелы
 
         return new ParsedCommand(command, key, value);
+    }
+
+    /// <summary> должен разбирать входящую последовательность байт, представляющую собой строку вида "COMMAND KEY VALUE" </summary>
+    /// <param name="command">"COMMAND KEY VALUE" (ex. "SET user:1 data")</param>
+    public static ParsedCommand Parse(string? rawCommand)
+    {
+        if (string.IsNullOrWhiteSpace(rawCommand))
+            return ParsedCommand.Empty();
+
+        return Parse(rawCommand.AsSpan().TrimStart());
     }
 }

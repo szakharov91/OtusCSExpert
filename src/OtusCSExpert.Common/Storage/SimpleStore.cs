@@ -27,7 +27,7 @@ public class SimpleStore : IStoragable
         ArgumentNullException.ThrowIfNull(key, nameof(key));
 
         if (!_keyValuePairs.TryGetValue(key, out byte[]? value))
-            throw new KeyNotFoundException($"Key '{key}' was not found in the dictionary.");
+            return null;
 
         return value;
     }
