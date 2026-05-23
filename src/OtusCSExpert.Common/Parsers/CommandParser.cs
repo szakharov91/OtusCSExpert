@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Buffers;
+using System.Text;
 using OtusCSExpert.Common.Types;
 
 namespace OtusCSExpert.Common.Parsers;
@@ -8,19 +9,21 @@ public static class CommandParser
     /// <summary> Перегрузка для явной последовательности байт </summary>
     public static ParsedCommand Parse(ReadOnlySpan<byte> byteSequence)
     {
-        // Такой подход не компилится, из-за stackalloc ... 
-        //int maxCharCount = Encoding.UTF8.GetCharCount(byteSequence);
-        //Span<char> charBuffer = stackalloc char[maxCharCount];
-        //int actualChars = Encoding.UTF8.GetChars(byteSequence, charBuffer);
-        //ReadOnlySpan<char> rawCommand = charBuffer.Slice(0, actualChars);
-
-        //return Parse(rawCommand);
-
         if (byteSequence.IsEmpty)
             return ParsedCommand.Empty();
  
-        string rawString = Encoding.UTF8.GetString(byteSequence); // Аллокация, за то работает
-        return Parse(rawString.AsSpan().TrimStart());
+        int maxCharCount = Encoding.UTF8.GetCharCount(byteSequence);
+        char[] buffer = ArrayPool<char>.Shared.Rent(maxCharCount);
+        
+        try
+        {
+            int actualCharCount = Encoding.UTF8.GetChars(byteSequence, buffer);
+            return Parse(buffer.AsSpan(0, actualCharCount).TrimStart());
+        }
+        finally
+        {
+            ArrayPool<char>.Shared.Return(buffer);
+        }
     }
 
     /// <summary> Перегрузка для последовательности символов </summary>
