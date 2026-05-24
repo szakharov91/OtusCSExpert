@@ -6,6 +6,16 @@ namespace OtusCSExpert.Common.Parsers;
 
 public static class CommandParser
 {
+    /// <summary> должен разбирать входящую последовательность байт, представляющую собой строку вида "COMMAND KEY VALUE" </summary>
+    /// <param name="command">"COMMAND KEY VALUE" (ex. "SET user:1 data")</param>
+    public static ParsedCommand Parse(string? rawCommand)
+    {
+        if (string.IsNullOrWhiteSpace(rawCommand))
+            return ParsedCommand.Empty();
+
+        return Parse(rawCommand.AsSpan().TrimStart());
+    }
+
     /// <summary> Перегрузка для явной последовательности байт </summary>
     public static ParsedCommand Parse(ReadOnlySpan<byte> byteSequence)
     {
@@ -27,7 +37,7 @@ public static class CommandParser
     }
 
     /// <summary> Перегрузка для последовательности символов </summary>
-    public static ParsedCommand Parse(ReadOnlySpan<char> rawCommand)
+    private static ParsedCommand Parse(ReadOnlySpan<char> rawCommand)
     {
         // Первый токен — команда, всегда должна быть. Если её нет, то это некорректная строка.
         int idx = rawCommand.IndexOf(' ');
@@ -59,15 +69,5 @@ public static class CommandParser
         ReadOnlySpan<char> value = rest.Slice(idx2 + 1).Trim(); // убираем хвостовые пробелы
 
         return new ParsedCommand(command, key, value);
-    }
-
-    /// <summary> должен разбирать входящую последовательность байт, представляющую собой строку вида "COMMAND KEY VALUE" </summary>
-    /// <param name="command">"COMMAND KEY VALUE" (ex. "SET user:1 data")</param>
-    public static ParsedCommand Parse(string? rawCommand)
-    {
-        if (string.IsNullOrWhiteSpace(rawCommand))
-            return ParsedCommand.Empty();
-
-        return Parse(rawCommand.AsSpan().TrimStart());
     }
 }
