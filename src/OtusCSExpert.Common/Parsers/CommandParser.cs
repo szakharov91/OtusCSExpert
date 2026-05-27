@@ -16,19 +16,31 @@ public static class CommandParser
         return Parse(rawCommand.AsSpan().TrimStart());
     }
 
-    /// <summary> Перегрузка для явной последовательности байт </summary>
-    public static ParsedCommand Parse(ReadOnlySpan<byte> byteSequence)
+    /// <summary> Перегрузка для ReadOnlyMemory </summary>
+    public static ParsedCommand Parse(ReadOnlyMemory<byte> memoryBytes)
     {
-        if (byteSequence.IsEmpty)
+        if (memoryBytes.IsEmpty)
             return ParsedCommand.Empty();
- 
-        int maxCharCount = Encoding.UTF8.GetCharCount(byteSequence);
+
+        ReadOnlySpan<byte> span = memoryBytes.Span;
+
+        int maxCharCount = Encoding.UTF8.GetCharCount(span);
         char[] buffer = ArrayPool<char>.Shared.Rent(maxCharCount);
-        
+
         try
         {
-            int actualCharCount = Encoding.UTF8.GetChars(byteSequence, buffer);
-            return Parse(buffer.AsSpan(0, actualCharCount).TrimStart());
+            int actualCharCount = Encoding.UTF8.GetChars(span, buffer);
+            var result = Parse(buffer.AsSpan(0, actualCharCount).TrimStart());
+
+            if (result.IsEmpty())
+                return ParsedCommand.Empty();
+
+            // переделываем на строки, чтобы никто не мог случайно использовать буфер после его возврата в пул
+            return new ParsedCommand(
+                result.Command.ToString(),
+                result.Key.ToString(),
+                result.Value.ToString()
+            );
         }
         finally
         {
