@@ -19,7 +19,7 @@ public class TcpServer : IServer
 {
     private readonly ICommandHandler _dataHandler;
     private readonly int _port;
-    private readonly IPAddress _ipAddress = IPAddress.Loopback;
+    private readonly IPAddress _ipAddress;
     private readonly CancellationTokenSource _cts = new CancellationTokenSource();
     private readonly int _bufferSize = 8 * 1024;
 
@@ -28,10 +28,11 @@ public class TcpServer : IServer
 
     #region ctor, finalizers, properties
 
-    public TcpServer(ICommandHandler dataHandler, int port = 8080)
+    public TcpServer(ICommandHandler dataHandler, IPAddress ipAddress, int port = 8080)
     {
         _dataHandler = dataHandler;
         _port = port;
+        _ipAddress = ipAddress;
     }
 
     /// <summary> Финализатор (деструктор) - только для освобождения НЕУПРАВЛЯЕМЫХ ресурсов </summary>

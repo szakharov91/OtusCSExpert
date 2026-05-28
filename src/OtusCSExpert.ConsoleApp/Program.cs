@@ -18,7 +18,7 @@ var cts = new CancellationTokenSource();
 
 _ = Task.Run(async () =>
 {
-    using IServer server = new TcpServer(new ConsoleHandler());
+    using IServer server = new TcpServer(new ConsoleHandler(), IPAddress.Loopback);
     await server.StartAsync(cts.Token);
 });
 
