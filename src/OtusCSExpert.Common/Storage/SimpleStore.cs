@@ -15,6 +15,7 @@ public class SimpleStore : IStoragable
     private long _setCount;
     private long _getCount;
     private long _deleteCount;
+    private bool disposedValue;
 
     public void Delete(string key)
     {
@@ -65,4 +66,24 @@ public class SimpleStore : IStoragable
 
     public (long setCount, long getCount, long deleteCount) GetStatistics() =>
         (_setCount, _getCount, _deleteCount);
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!disposedValue)
+        {
+            if (disposing)
+            {
+                _lock.Dispose();
+            }
+
+            disposedValue = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
 }

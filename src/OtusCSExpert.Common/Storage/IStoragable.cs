@@ -1,6 +1,6 @@
 ﻿namespace OtusCSExpert.Common.Storage;
 
-public interface IStoragable
+public interface IStoragable: IDisposable
 {
     /// <summary> добавляет или обновляет значение по ключу. </summary>
     void Set(string key, byte[] value);
