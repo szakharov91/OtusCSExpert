@@ -37,7 +37,9 @@ public class SimpleStore : IStoragable
         _lock.EnterReadLock();
         try
         {
-            return !_keyValuePairs.TryGetValue(key, out byte[]? value) ? null : value;
+            var result = !_keyValuePairs.TryGetValue(key, out byte[]? value) ? null : value;
+            Interlocked.Increment(ref _getCount);
+            return result;
         }
         finally
         {
@@ -53,6 +55,7 @@ public class SimpleStore : IStoragable
         try
         {
             _keyValuePairs[key] = value;
+            Interlocked.Increment(ref _setCount);
         }
         finally
         {
