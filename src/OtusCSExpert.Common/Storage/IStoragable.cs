@@ -10,4 +10,7 @@ public interface IStoragable
 
     /// <summary> удаляет ключ и значение. </summary>
     void Delete(string key);
+
+    /// <summary> Получение статистики </summary>
+    (long setCount, long getCount, long deleteCount) GetStatistics();
 }

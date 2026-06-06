@@ -12,13 +12,18 @@ public class SimpleStore : IStoragable
     private readonly Dictionary<string, byte[]> _keyValuePairs = [];
     private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
 
+    private long _setCount;
+    private long _getCount;
+    private long _deleteCount;
+
     public void Delete(string key)
     {
         ArgumentNullException.ThrowIfNull(key, nameof(key));
         _lock.EnterWriteLock();
         try
         {
-            _keyValuePairs.Remove(key);    
+            _keyValuePairs.Remove(key);
+            Interlocked.Increment(ref _deleteCount);
         }
         finally
         {
@@ -54,4 +59,7 @@ public class SimpleStore : IStoragable
             _lock.ExitWriteLock();
         }
     }
+
+    public (long setCount, long getCount, long deleteCount) GetStatistics() =>
+        (_setCount, _getCount, _deleteCount);
 }
