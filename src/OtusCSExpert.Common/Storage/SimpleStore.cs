@@ -23,8 +23,8 @@ public class SimpleStore : IStoragable
         _lock.EnterWriteLock();
         try
         {
-            _keyValuePairs.Remove(key);
-            Interlocked.Increment(ref _deleteCount);
+            if(_keyValuePairs.Remove(key))
+                Interlocked.Increment(ref _deleteCount);
         }
         finally
         {
@@ -38,9 +38,11 @@ public class SimpleStore : IStoragable
         _lock.EnterReadLock();
         try
         {
-            var result = !_keyValuePairs.TryGetValue(key, out byte[]? value) ? null : value;
+            if(!_keyValuePairs.TryGetValue(key, out byte[]? value))
+                return null;
+
             Interlocked.Increment(ref _getCount);
-            return result;
+            return value;
         }
         finally
         {

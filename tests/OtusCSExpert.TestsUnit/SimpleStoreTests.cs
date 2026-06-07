@@ -79,7 +79,7 @@ public class SimpleStoreTests
     public async Task SimpleStore_Concurrent_Set_UniqueKeys_AllValuesAreCorrect()
     {
         // Arrange
-        var store = new SimpleStore();
+        using var store = new SimpleStore();
         const int taskCount = 50;
 
         var tasks = Enumerable.Range(0, taskCount)
@@ -107,7 +107,7 @@ public class SimpleStoreTests
     public async Task SimpleStore_Concurrent_SetAndGet_MixedOperations_CountersMatchExpected()
     {
         // Arrange
-        var store = new SimpleStore();
+        using var store = new SimpleStore();
         const int keyCount = 10;
         const int setTasksPerKey = 5;
         const int getTasksPerKey = 5;
