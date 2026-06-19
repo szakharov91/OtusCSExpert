@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using FluentAssertions;
+using OtusCSExpert.Common.Storage;
 using OtusCSExpert.Common.Utils.CommandHandlers;
 using OtusCSExpert.Common.Utils.Server;
 
@@ -10,7 +11,7 @@ namespace OtusCSExpert.TestsUnit;
 public class ServerTests : IDisposable
 {
     private readonly ICommandHandler _commandHandler = new BlankCommandHandler();
-
+    
     private TcpServer? _server;
 
     public void Dispose() => _server?.Dispose();
@@ -27,14 +28,14 @@ public class ServerTests : IDisposable
     [Fact]
     public void Constructor_DefaultPort_CreatesInstance()
     {
-        using var server = new TcpServer(_commandHandler, IPAddress.Loopback);
+        using var server = new TcpServer(_commandHandler, new SimpleStore(), IPAddress.Loopback);
         server.Should().NotBeNull();
     }
 
     [Fact]
     public void Constructor_CustomPort_CreatesInstance()
     {
-        using var server = new TcpServer(_commandHandler, IPAddress.Loopback, GetFreePort());
+        using var server = new TcpServer(_commandHandler, new SimpleStore(), IPAddress.Loopback, GetFreePort());
         server.Should().NotBeNull();
     }
 
@@ -42,7 +43,7 @@ public class ServerTests : IDisposable
     public async Task StartAsync_ListensOnPort_AcceptsConnection()
     {
         int port = GetFreePort();
-        _server = new TcpServer(_commandHandler, IPAddress.Loopback, port);
+        _server = new TcpServer(_commandHandler, new SimpleStore(), IPAddress.Loopback, port);
         _ = _server.StartAsync();
         await Task.Delay(100);
 
@@ -57,7 +58,7 @@ public class ServerTests : IDisposable
     public async Task Stop_AfterStart_RefusesNewConnections()
     {
         int port = GetFreePort();
-        _server = new TcpServer(_commandHandler, IPAddress.Loopback, port);
+        _server = new TcpServer(_commandHandler, new SimpleStore(), IPAddress.Loopback, port);
         _ = _server.StartAsync();
         await Task.Delay(100);
 
@@ -72,7 +73,7 @@ public class ServerTests : IDisposable
     [Fact]
     public void Stop_WhenNotStarted_DoesNotThrow()
     {
-        _server = new TcpServer(_commandHandler, IPAddress.Loopback, GetFreePort());
+        _server = new TcpServer(_commandHandler, new SimpleStore(), IPAddress.Loopback, GetFreePort());
         Action act = () => _server.Stop();
         act.Should().NotThrow();
     }
@@ -80,7 +81,7 @@ public class ServerTests : IDisposable
     [Fact]
     public void Dispose_WhenNotStarted_DoesNotThrow()
     {
-        var server = new TcpServer(_commandHandler, IPAddress.Loopback, GetFreePort());
+        var server = new TcpServer(_commandHandler, new SimpleStore(), IPAddress.Loopback, GetFreePort());
         Action act = () => server.Dispose();
         act.Should().NotThrow();
     }
@@ -89,7 +90,7 @@ public class ServerTests : IDisposable
     public async Task Dispose_WhenStarted_DoesNotThrow()
     {
         int port = GetFreePort();
-        _server = new TcpServer(_commandHandler, IPAddress.Loopback, port);
+        _server = new TcpServer(_commandHandler, new SimpleStore(), IPAddress.Loopback, port);
         _ = _server.StartAsync();
         await Task.Delay(100);
 
@@ -100,7 +101,7 @@ public class ServerTests : IDisposable
     [Fact]
     public void Dispose_CalledMultipleTimes_DoesNotThrow()
     {
-        var server = new TcpServer(_commandHandler, IPAddress.Loopback, GetFreePort());
+        var server = new TcpServer(_commandHandler, new SimpleStore(), IPAddress.Loopback, GetFreePort());
         Action act = () =>
         {
             server.Dispose();
@@ -113,7 +114,7 @@ public class ServerTests : IDisposable
     public async Task StartAsync_AfterStop_ServerTaskCompletes()
     {
         int port = GetFreePort();
-        _server = new TcpServer(_commandHandler, IPAddress.Loopback, port);
+        _server = new TcpServer(_commandHandler, new SimpleStore(), IPAddress.Loopback, port);
         var serverTask = _server.StartAsync();
         await Task.Delay(100);
 
@@ -128,7 +129,7 @@ public class ServerTests : IDisposable
     public async Task StartAsync_ClientSendsValidCommand_ServerRemainsRunning()
     {
         int port = GetFreePort();
-        _server = new TcpServer(_commandHandler, IPAddress.Loopback, port);
+        _server = new TcpServer(_commandHandler, new SimpleStore(), IPAddress.Loopback, port);
         _ = _server.StartAsync();
         await Task.Delay(100);
 
@@ -150,7 +151,7 @@ public class ServerTests : IDisposable
     public async Task StartAsync_ClientDisconnectsWithoutData_ServerRemainsRunning()
     {
         int port = GetFreePort();
-        _server = new TcpServer(_commandHandler, IPAddress.Loopback, port);
+        _server = new TcpServer(_commandHandler, new SimpleStore(), IPAddress.Loopback, port);
         _ = _server.StartAsync();
         await Task.Delay(100);
 
@@ -173,7 +174,7 @@ public class ServerTests : IDisposable
     public async Task StartAsync_MultipleSequentialClients_HandlesAll()
     {
         int port = GetFreePort();
-        _server = new TcpServer(_commandHandler, IPAddress.Loopback, port);
+        _server = new TcpServer(_commandHandler, new SimpleStore(), IPAddress.Loopback, port);
         _ = _server.StartAsync();
         await Task.Delay(100);
 

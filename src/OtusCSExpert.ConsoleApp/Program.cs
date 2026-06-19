@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using OtusCSExpert.Common.Storage;
 using OtusCSExpert.Common.Types;
 using OtusCSExpert.Common.Utils.CommandHandlers;
 using OtusCSExpert.Common.Utils.Server;
@@ -18,7 +19,7 @@ var cts = new CancellationTokenSource();
 
 _ = Task.Run(async () =>
 {
-    using IServer server = new TcpServer(new ConsoleHandler(), IPAddress.Loopback);
+    using IServer server = new TcpServer(new ConsoleHandler(), new SimpleStore(), IPAddress.Loopback);
     await server.StartAsync(cts.Token);
 });
 
