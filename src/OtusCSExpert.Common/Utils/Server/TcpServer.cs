@@ -10,6 +10,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using OtusCSExpert.Common.Parsers;
+using OtusCSExpert.Common.Storage;
 using OtusCSExpert.Common.Types;
 using OtusCSExpert.Common.Utils.CommandHandlers;
 
@@ -18,19 +19,24 @@ namespace OtusCSExpert.Common.Utils.Server;
 public class TcpServer : IServer
 {
     private readonly ICommandHandler _dataHandler;
+    private readonly IStoragable _storage;
     private readonly int _port;
     private readonly IPAddress _ipAddress;
     private readonly CancellationTokenSource _cts = new CancellationTokenSource();
     private readonly int _bufferSize = 8 * 1024;
+    private static readonly byte[] _okResponse = Encoding.UTF8.GetBytes("OK\r\n");
+    private static readonly byte[] _nilResponse = Encoding.UTF8.GetBytes("(nil)\r\n");
+    private static readonly byte[] _unknownCommandResponse = Encoding.UTF8.GetBytes("-ERR Unknown command\r\n");
 
     private Socket? _listener;
     private bool _isDisposed;
 
     #region ctor, finalizers, properties
 
-    public TcpServer(ICommandHandler dataHandler, IPAddress ipAddress, int port = 8080)
+    public TcpServer(ICommandHandler dataHandler, IStoragable storage, IPAddress ipAddress, int port = 8080)
     {
         _dataHandler = dataHandler;
+        _storage = storage;
         _port = port;
         _ipAddress = ipAddress;
     }
@@ -133,7 +139,34 @@ public class TcpServer : IServer
 
                 ReadOnlyMemory<byte> readOnlyData = memory[..bytesReceived];
                 var result = CommandParser.Parse(readOnlyData);
+
                 _dataHandler.Execute(result);
+
+                string key = result.Key.ToString();
+                byte[] response = _nilResponse;
+
+                switch (result.Command)
+                {
+                    case "GET":
+                        response = _storage.Get(key) ?? _nilResponse;
+                        break;
+                    case "SET":
+                        int byteCount = Encoding.UTF8.GetByteCount(result.Value);
+                        byte[] valueBytes = new byte[byteCount];
+                        Encoding.UTF8.GetBytes(result.Value, valueBytes);
+                        _storage.Set(key, valueBytes);
+                        response = _okResponse;
+                        break;
+                    case "DELETE":
+                        _storage.Delete(key);
+                        response = _okResponse;
+                        break;
+                    default:
+                        await clientSocket.SendAsync(_unknownCommandResponse);
+                        continue;
+                }
+
+                await clientSocket.SendAsync(response);
             }
         }
         finally

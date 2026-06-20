@@ -11,10 +11,10 @@ namespace OtusCSExpert.TestsUnit;
 
 public class SimpleStoreTests
 {
-    private readonly string randomKey = Guid.NewGuid().ToString();
-    private readonly string defaultKey = "User:1";
-    private readonly byte[] defaultValue = Encoding.UTF8.GetBytes("data");
-    private readonly byte[] updatedValue = Encoding.UTF8.GetBytes("new data");
+    private readonly string _randomKey = Guid.NewGuid().ToString();
+    private readonly string _defaultKey = "User:1";
+    private readonly byte[] _defaultValue = Encoding.UTF8.GetBytes("data");
+    private readonly byte[] _updatedValue = Encoding.UTF8.GetBytes("new data");
 
     [Fact]
     public void SimpleStore_Set_Then_Get_Value()
@@ -23,11 +23,11 @@ public class SimpleStoreTests
         IStoragable store = new SimpleStore();
         
         // Act
-        store.Set(defaultKey, defaultValue);
-        var value = store.Get(defaultKey);
+        store.Set(_defaultKey, _defaultValue);
+        var value = store.Get(_defaultKey);
 
         // Assert
-        value.Should().BeEqualTo(defaultValue);
+        value.Should().BeEqualTo(_defaultValue);
     }
 
     [Fact]
@@ -37,12 +37,12 @@ public class SimpleStoreTests
         IStoragable store = new SimpleStore();
 
         // Act
-        store.Set(defaultKey, defaultValue);
-        store.Set(defaultKey, updatedValue);
-        var value = store.Get(defaultKey);
+        store.Set(_defaultKey, _defaultValue);
+        store.Set(_defaultKey, _updatedValue);
+        var value = store.Get(_defaultKey);
 
         // Assert
-        value.Should().BeEqualTo(updatedValue);
+        value.Should().BeEqualTo(_updatedValue);
     }
 
     [Fact]
@@ -52,9 +52,9 @@ public class SimpleStoreTests
         IStoragable store = new SimpleStore();
 
         // Act
-        store.Set(defaultKey, defaultValue);
-        store.Delete(defaultKey);
-        var value = store.Get(defaultKey);
+        store.Set(_defaultKey, _defaultValue);
+        store.Delete(_defaultKey);
+        var value = store.Get(_defaultKey);
 
         // Assert
         value.Should().BeNull();
@@ -67,9 +67,9 @@ public class SimpleStoreTests
         IStoragable store = new SimpleStore();
 
         // Act
-        store.Set(defaultKey, defaultValue);
-        store.Set(defaultKey, updatedValue);
-        var value = store.Get(randomKey);
+        store.Set(_defaultKey, _defaultValue);
+        store.Set(_defaultKey, _updatedValue);
+        var value = store.Get(_randomKey);
 
         // Assert
         value.Should().BeNull();
