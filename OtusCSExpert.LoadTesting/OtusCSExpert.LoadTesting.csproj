@@ -11,4 +11,8 @@
     <PackageReference Include="NBomber" Version="6.5.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\src\OtusCSExpert.Common\OtusCSExpert.Common.csproj" />
+  </ItemGroup>
+
 </Project>
