@@ -2,7 +2,7 @@
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
   </Folder>
-  <Project Path="OtusCSExpert.LoadTesting/OtusCSExpert.LoadTesting.csproj" Id="bc92756c-f8ab-4d38-be4c-409f0d8f3133" />
+  <Project Path="tests/OtusCSExpert.LoadTesting/OtusCSExpert.LoadTesting.csproj" Id="bc92756c-f8ab-4d38-be4c-409f0d8f3133" />
   <Project Path="src/OtusCSExpert.Common/OtusCSExpert.Common.csproj" />
   <Project Path="src/OtusCSExpert.ConsoleApp/OtusCSExpert.ConsoleApp.csproj" />
   <Project Path="tests/OtusCSExpert.TestsUnit/OtusCSExpert.TestsUnit.csproj" />
