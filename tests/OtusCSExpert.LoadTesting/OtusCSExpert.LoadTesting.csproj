@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\OtusCSExpert.Common\OtusCSExpert.Common.csproj" />
+    <ProjectReference Include="..\..\src\OtusCSExpert.Common\OtusCSExpert.Common.csproj" />
   </ItemGroup>
 
 </Project>

@@ -2,6 +2,7 @@
 using NBomber.Contracts;
 using NBomber.CSharp;
 using OtusCSExpert.Common.Utils.Server;
+using OtusCSExpert.LoadTesting.Utils;
 
 namespace OtusCSExpert.LoadTesting;
 
@@ -63,9 +64,19 @@ public class Program
             Simulation.Inject(100, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(30))
         );
 
-        NBomberRunner
-            .RegisterScenarios(scenario)
-            .Run();
+        string reportsFolder = Path.Combine(
+            VisualStudioProvider.GetPathToPrerequisites(VisualStudioProvider.TryGetSolutionDirectoryInfo().FullName),
+            "NBomber_Reports"
+            );
+
+        var nbomber = NBomberRunner.RegisterScenarios(scenario);
+
+        if (Directory.Exists(reportsFolder))
+        {
+            nbomber = nbomber.WithReportFolder(Path.Combine(reportsFolder, DateTime.Now.ToString("yyyy_MM_dd-HH_mm_ss")));
+        }
+
+        nbomber.Run();
 
         Console.ReadLine();
     }
