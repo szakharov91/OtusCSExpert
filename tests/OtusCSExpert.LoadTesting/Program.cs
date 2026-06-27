@@ -32,26 +32,39 @@ public class Program
             // Внутри сценария определяем шаг с помощью Step.Run
             var response = await Step.Run("client_step", context, async () =>
             {
-                // Создаём клиента внутри шага
-                using ISimpleTcpClient client = new SimpleTcpClient("127.0.0.1", 8080);
-                await client.ConnectAsync();
-
                 var randomInt = _rand.Next(_randomOptions.MinValue, _randomOptions.MaxValue);
 
                 string key = GenerateRandomString(_randomOptions.KeyLength);
                 byte[] value = Encoding.UTF8.GetBytes(GenerateRandomString(_randomOptions.ValueLength));
 
-                byte[] response = randomInt % 2 == 0 ? await client.SetAsync(key, value) : await client.GetAsync(key);
-
-                string encodedMessage = Encoding.UTF8.GetString(response);
-
-                return encodedMessage switch
+                try
                 {
-                    ErrorResponses.AsString.OkResponse => Response.Ok(),
-                    ErrorResponses.AsString.NilResponse => Response.Fail(),
-                    ErrorResponses.AsString.UnknownCommandResponse => Response.Fail(),
-                    _ => Response.Ok(),
-                };
+                    // Создаём клиента внутри шага
+                    using ISimpleTcpClient client = new SimpleTcpClient("127.0.0.1", 8080);
+                    await client.ConnectAsync();
+
+                    byte[] response = randomInt % 2 == 0 ? await client.SetAsync(key, value) : await client.GetAsync(key);
+
+                    if (response.Length == _randomOptions.ValueLength)
+                        return Response.Ok(); // GET вернул сохранённое значение
+
+                    if (response.Length == 0)
+                        return Response.Fail(); // Всегда ошибка
+
+                    string encodedMessage = Encoding.UTF8.GetString(response);
+                    return encodedMessage switch
+                    {
+                        ErrorResponses.AsString.OkResponse => Response.Ok(),
+                        ErrorResponses.AsString.NilResponse => Response.Ok(),
+                        ErrorResponses.AsString.UnknownCommandResponse => Response.Fail(),
+                        _ => Response.Fail(), // всё остальное — ошибка
+                    };
+                }
+                catch (Exception)
+                {
+                    // на случай, если у нас происходит какой-то сетевой сбой
+                    return Response.Fail();
+                }
             });
 
             return response;

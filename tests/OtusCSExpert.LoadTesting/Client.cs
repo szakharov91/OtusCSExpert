@@ -51,14 +51,23 @@ public class SimpleTcpClient : ISimpleTcpClient
         using var stream = _client.GetStream();
         await stream.WriteAsync(data);
 
-        var buffer = new byte[_bufferSize];
-        int read = 0;
-        if (stream.DataAvailable)
-        {
-            read = await stream.ReadAsync(buffer);
-        }
+        /* 
+         * убрал обычную проверку stream.DataAvailable, 
+         * потому что он проверяет только буферизированные данные,
+         * а нам необходимо убедиться под нагрузкой, что все идет корректно.
+        */
 
-        return buffer[..read];
+        var buffer = new byte[_bufferSize];
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        try
+        {
+            int read = await stream.ReadAsync(buffer, 0, buffer.Length, cts.Token);
+            return buffer[..read];
+        }
+        catch (OperationCanceledException)
+        {
+            throw new TimeoutException("No response from server within timeout");
+        }
     }
 
     protected virtual void Dispose(bool disposing)
