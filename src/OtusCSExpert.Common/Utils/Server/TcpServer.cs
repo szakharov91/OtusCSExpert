@@ -16,6 +16,16 @@ using OtusCSExpert.Common.Utils.CommandHandlers;
 
 namespace OtusCSExpert.Common.Utils.Server;
 
+public static class ErrorResponses
+{
+    public static class AsString
+    {
+        public const string OkResponse = "OK\r\n";
+        public const string NilResponse = "(nil)\r\n";
+        public const string UnknownCommandResponse = "-ERR Unknown command\r\n";
+    }
+}
+
 public class TcpServer : IServer
 {
     private readonly ICommandHandler _dataHandler;
